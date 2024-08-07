@@ -48,7 +48,7 @@ async function GetFile(req, res, next) {
   if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
     return res.status(404).json({ error: 'Not found' });
   }
-  if (eq.url.includes('/data')) next();
+  if (eq.url.includes('/data')) return next();
   res.json(file);
 }
 
@@ -62,8 +62,8 @@ async function GetData(req, res, next) {
   if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
     return res.status(404).json({ error: 'Not found' });
   }
-  if (eq.url.includes('/data')) next();
-  res.json(file);
+  
+  
 }
 
 async function GetAll(req, res) {
