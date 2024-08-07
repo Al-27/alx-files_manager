@@ -21,7 +21,6 @@ async function ValidToken(req, res, next) {
 async function Connect(req, res) {
   let base64 = req.headers.authorization.replace('Basic ', '');
   base64 = Buffer.from(base64, 'base64').toString('ascii').split(':');
-
   if (base64.length < 2) base64 = ['fa', 'il'];
 
   const email = base64[0];

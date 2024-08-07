@@ -3,3 +3,5 @@ package-lock.json
 dump.rdb
 nodemon.json
 jsconfig.json
+test.js
+tmp/

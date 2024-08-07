@@ -18,4 +18,6 @@ routes.get('/users/me', userCtrls.curUsr);
 routes.post('/users', userCtrls.newUser);
 
 routes.post('/files', filesCtrls.upload);
+routes.get('/files/:id', filesCtrls.getFile);
+routes.get('/files', filesCtrls.getAll);
 export default routes;
