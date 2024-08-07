@@ -9,7 +9,7 @@ async function ValidToken(req, res, next) {
     case '/users/me':
     case '/files':
         if (xToken == null || (await redisClient.get(`auth_${xToken}`)) == null) {
-            return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}\n`);
+            return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}`);
         }
         break;
     default:
@@ -26,13 +26,13 @@ async function Connect(req, res) {
     const password = base64[1];
     const isValid = await dbClient.isUserValid(email, password);
     if (!isValid) {
-        return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}\n`);
+        return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}`);
     }
     const token = v4();
     const tokenk = `auth_${token}`;
     const id = (await dbClient.GetUserByEmail(email))._id;
     redisClient.set(tokenk, id, 3600 * 24);
-    res.status(200).send(`${JSON.stringify({ token })}\n`);
+    res.status(200).send(`${JSON.stringify({ token })}`);
 }
 
 async function Disconnect(req, res) {

@@ -4,15 +4,15 @@ import redisClient from '../utils/redis';
 async function NewUser(req, res) {
     const { email, password } = req.body;
     if (!email) {
-        return res.status(400).send(`${JSON.stringify({ error: 'Missing email' })}\n`);
+        return res.status(400).send(`${JSON.stringify({ error: 'Missing email' })}`);
     }
 
     if (!password) {
-        return res.status(400).send(`${JSON.stringify({ error: 'Missing email' })}\n`);
+        return res.status(400).send(`${JSON.stringify({ error: 'Missing email' })}`);
     }
 
     if (await dbClient.isUserValid(email)) {
-        return res.status(400).send(`${JSON.stringify({ error: 'Already exist' })}\n`);
+        return res.status(400).send(`${JSON.stringify({ error: 'Already exist' })}`);
     }
 
     await dbClient.CreateUser(email, password);
