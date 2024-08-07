@@ -2,11 +2,13 @@ import { v4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
+
 async function ValidToken(req, res, next) {
     const xToken = req.headers['x-token'];
     switch (req.url) {
     case '/disconnect':
     case '/users/me':
+    case '/files':
         if (xToken == null || (await redisClient.get(`auth_${xToken}`)) == null) {
             return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}\n`);
         }
@@ -18,21 +20,24 @@ async function ValidToken(req, res, next) {
 }
 
 async function Connect(req, res) {
-    const { email, password } = req.body;
+    let base64 = req.headers.authorization?.replace("Basic ","");
+    base64 = Buffer.from(base64, "base64").toString("ascii").split(":");
+
+    const email = base64[0];
+    const password = base64[1];
     const isValid = await dbClient.isUserValid(email, password);
     if (!isValid) {
         return res.status(401).send(`${JSON.stringify({ error: 'Unathorized' })}\n`);
     }
     const token = v4();
     const tokenk = `auth_${token}`;
-    // const id = (await dbClient.GetUser(email))._id;
-    redisClient.set(tokenk, email, 3600 * 24);
+    const id = (await dbClient.GetUserByEmail(email))._id;
+    redisClient.set(tokenk, id, 3600 * 24);
     res.status(200).send(`${JSON.stringify({ token })}\n`);
 }
 
 async function Disconnect(req, res) {
     const token = `auth_${req.headers['x-token']}`;
-    console.log('disc');
     await redisClient.del(token);
     res.status(204).send();
 }
