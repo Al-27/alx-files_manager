@@ -53,10 +53,18 @@ class DBClient {
     return file.insertedIds[0];
   }
 
+  async UpdateDocument(query, collection)
+  {
+
+  }
+
   async GetFiles(query, single = true, page = 0) { 
     const docs = await this.db.collection('files').aggregate([
       { $match:  query },
-      { $project: { localPath: 0}},
+      { $addFields: {
+        id: "$_id" // Create a new field yearsOld with the value of the age field
+      } },
+      { $project: { localPath: 0, _id: 0}}, 
       { $skip: page }, 
       { $limit: 20 } 
     ]   ) .toArray() ;
