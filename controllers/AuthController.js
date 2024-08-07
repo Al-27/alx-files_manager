@@ -2,7 +2,6 @@ import { v4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
-
 async function ValidToken(req, res, next) {
     const xToken = req.headers['x-token'];
     switch (req.url) {
@@ -20,8 +19,8 @@ async function ValidToken(req, res, next) {
 }
 
 async function Connect(req, res) {
-    let base64 = req.headers.authorization?.replace("Basic ","");
-    base64 = Buffer.from(base64, "base64").toString("ascii").split(":");
+    let base64 = req.headers.authorization.replace('Basic ', '');
+    base64 = Buffer.from(base64, 'base64').toString('ascii').split(':');
 
     const email = base64[0];
     const password = base64[1];
