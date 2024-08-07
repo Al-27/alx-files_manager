@@ -4,13 +4,13 @@ import { env } from 'process';
 import { v4 } from 'uuid';
 import redisClient from './redis';
 
-function CreateFile(file, parent = '') { 
+function CreateFile(file, parent = '') {
   let localPath = env.FOLDER_PATH ? env.FOLDER_PATH : '/tmp/files_manager';
-localPath = path.join(localPath, parent);
-  const folderPath = path.join(require.main.path, );
+  localPath = path.join(localPath, parent);
+  const folderPath = path.join(require.main.path);
   mkdirSync(folderPath, { recursive: true });
   const uuid = v4();
-  const data = Buffer.from(file, 'base64'); 
+  const data = Buffer.from(file, 'base64');
   writeFile(path.join(folderPath, uuid), data, (er) => { if (er) console.log(er); });
 
   return path.join(localPath, uuid);

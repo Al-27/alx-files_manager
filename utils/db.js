@@ -53,22 +53,29 @@ class DBClient {
     return file.insertedIds[0];
   }
 
-  async UpdateDocument(query, collection)
-  {
-
+  async UpdateDocument(query, collection) {
+    if (query[0]._id) {
+      query[0]._id = new ObjectId(query[0]._id);
+    }
+    await this.db.collection(collection).update(...query);
   }
 
-  async GetFiles(query, single = true, page = 0) { 
+  async GetFiles(query, single = true, page = 0) {
+    if (query._id) {
+      query._id = new ObjectId(query._id);
+    }
     const docs = await this.db.collection('files').aggregate([
-      { $match:  query },
-      { $addFields: {
-        id: "$_id" // Create a new field yearsOld with the value of the age field
-      } },
-      { $project: { localPath: 0, _id: 0}}, 
-      { $skip: page }, 
-      { $limit: 20 } 
-    ]   ) .toArray() ;
-    // if (docs) docs = docs.toArray();
+      { $match: query },
+      {
+        $addFields: {
+          id: '$_id', // Create a new field yearsOld with the value of the age field
+        },
+      },
+      { $project: { localPath: 0, _id: 0 } },
+      { $skip: page },
+      { $limit: 20 },
+    ]).toArray();
+    // if (docs) docs = docs.toArray(); 
     return single && docs ? docs[0] : docs;
   }
 
