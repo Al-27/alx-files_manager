@@ -4,27 +4,21 @@ import redisClient from '../utils/redis';
 
 async function ValidToken(req, res, next) {
   const xToken = req.headers['x-token'];
-  switch (req.url) {
-    case '/disconnect':
-    case '/users/me':
-    case '/files':
-      if (xToken == null || (await redisClient.get(`auth_${xToken}`)) == null) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-      break;
-    default:
-      break;
+  if (req.url.match(/(\/disconnect|\/users\/me|\/files)/g)) {
+    if (xToken == null || (await redisClient.get(`auth_${xToken}`)) == null) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
   }
   next();
 }
 
 async function Connect(req, res) {
   let base64 = req.headers.authorization.replace('Basic ', '');
-  base64 = Buffer.from(base64, 'base64').toString('ascii').split(':'); 
+  base64 = Buffer.from(base64, 'base64').toString('ascii').split(':');
   if (base64.length < 2) base64 = ['fa', 'il'];
   const email = base64[0];
   const password = base64[1];
-  const isValid = await dbClient.isUserValid(email, password); 
+  const isValid = await dbClient.isUserValid(email, password);
   if (!isValid) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

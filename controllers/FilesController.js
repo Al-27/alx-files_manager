@@ -32,43 +32,71 @@ async function UploadFile(req, res) {
     const fileid = await dbClient.CreateFile({ userId: id, ...metadata });
     return res.status(201).json({ id: fileid, userId: id, ...metadata });
   }
-  const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : ''); 
+  const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : '');
   delete metadata.data;
   const fileid = await dbClient.CreateFile({ userId: id, ...metadata, localPath });
   return res.status(201).json({ id: fileid, userId: id, ...metadata });
 }
 
-async function GetFile(req, res) {
+async function GetFile(req, res, next) {
   const { id } = req.params;
   const file = await dbClient.GetByid(id);
   const usrId = await misc.curUsrId(req.headers);
   if (!file) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  if (file.userId !== usrId) {
+  if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
     return res.status(404).json({ error: 'Not found' });
   }
+  if (eq.url.includes('/data')) next();
+  res.json(file);
+}
 
+async function GetData(req, res, next) {
+  const { id } = req.params;
+  const file = await dbClient.GetByid(id);
+  const usrId = await misc.curUsrId(req.headers);
+  if (file.type == 'folder') {
+    return res.status(401).json({ error: "A folder doesn't have content" });
+  }
+  if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  if (eq.url.includes('/data')) next();
   res.json(file);
 }
 
 async function GetAll(req, res) {
-  const parentId = req.query.parentId;
+  const { parentId } = req.query;
   const page = req.query.page * 20 - 1 || 0;
   const userId = await misc.curUsrId(req.headers);
-  const query = {userId, parentId};
-  if(!parentId) delete query.parentId;
-  
-  const files = await dbClient.GetFiles(query, false, page); 
-  
+  const query = { userId, parentId };
+  if (!parentId) delete query.parentId;
+
+  const files = await dbClient.GetFiles(query, false, page);
+
   if (!files) return res.status(401).json({ error: 'Unauthorized' });
 
   res.json(files);
 }
 
+async function SetPublish(req, res, publish) {
+  const { id } = req.params;
+  const file = await dbClient.GetFiles({ _id: id });
+  console.log(id, publish);
+  if (file) {
+    await dbClient.UpdateDocument([{ _id: id }, { $set: { isPublic: publish } }], 'files');
+    file.isPublic = publish;
+    return res.status(200).json(file);
+  }
+  return res.status(404).json({ error: 'Not found' });
+}
 const filesCtrls = {};
 filesCtrls.upload = UploadFile;
 filesCtrls.getFile = GetFile;
+filesCtrls.getData = GetData;
 filesCtrls.getAll = GetAll;
+filesCtrls.publish = async (req, res) => await SetPublish(req, res, true);
+filesCtrls.unpublish = async (req, res) => await SetPublish(req, res, false);
 
 export default filesCtrls;

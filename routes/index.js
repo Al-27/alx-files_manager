@@ -19,5 +19,10 @@ routes.post('/users', userCtrls.newUser);
 
 routes.post('/files', filesCtrls.upload);
 routes.get('/files/:id', filesCtrls.getFile);
+routes.get('/files/:id/data', filesCtrls.getData);
 routes.get('/files', filesCtrls.getAll);
+
+routes.put('/files/:id/publish', filesCtrls.publish);
+routes.put('/files/:id/unpublish', filesCtrls.unpublish);
+
 export default routes;
