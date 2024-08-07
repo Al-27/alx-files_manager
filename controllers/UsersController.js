@@ -14,14 +14,14 @@ async function NewUser(req, res) {
     if (await dbClient.isUserValid(email)) {
         return res.status(400).send(`${JSON.stringify({ error: 'Already exist' })}\n`);
     }
-    const id = await dbClient.CreateUser(email, password);
-    res.status(201).send(`${JSON.stringify({ id, email })}\n`);
+
+    await dbClient.CreateUser(email, password);
 }
 
 async function CurrentUser(req, res) {
     const token = req.headers['x-token'];
-    const email = await redisClient.get(`auth_${token}`);
-    const user = await dbClient.GetUser(email);
+    const id = await redisClient.get(`auth_${token}`);
+    const user = await dbClient.GetByid(id);
 
     res.send(JSON.stringify({ id: user._id, email: user.email }));
 }
