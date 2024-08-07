@@ -20,13 +20,11 @@ async function ValidToken(req, res, next) {
 
 async function Connect(req, res) {
   let base64 = req.headers.authorization.replace('Basic ', '');
-  base64 = Buffer.from(base64, 'base64').toString('ascii').split(':');
+  base64 = Buffer.from(base64, 'base64').toString('ascii').split(':'); 
   if (base64.length < 2) base64 = ['fa', 'il'];
-
   const email = base64[0];
   const password = base64[1];
-  const isValid = await dbClient.isUserValid(email, password);
-  console.log(isValid);
+  const isValid = await dbClient.isUserValid(email, password); 
   if (!isValid) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

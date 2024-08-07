@@ -1,3 +1,4 @@
+import { del } from 'request';
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
 
@@ -28,14 +29,13 @@ async function UploadFile(req, res) {
   }
 
   if (metadata.type === 'folder') {
-    const fileid = await dbClient.CreateFile({ ownerID: id, ...metadata });
-    return res.status(201).json({ id: fileid, ownerID: id, ...metadata });
+    const fileid = await dbClient.CreateFile({ userId: id, ...metadata });
+    return res.status(201).json({ id: fileid, userId: id, ...metadata });
   }
-
-  const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : '');
+  const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : ''); 
   delete metadata.data;
-  const fileid = await dbClient.CreateFile({ ownerID: id, ...metadata, localPath });
-  return res.status(201).json({ id: fileid, ownerID: id, ...metadata });
+  const fileid = await dbClient.CreateFile({ userId: id, ...metadata, localPath });
+  return res.status(201).json({ id: fileid, userId: id, ...metadata });
 }
 
 async function GetFile(req, res) {
@@ -45,7 +45,7 @@ async function GetFile(req, res) {
   if (!file) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  if (file.ownerID !== usrId) {
+  if (file.userId !== usrId) {
     return res.status(404).json({ error: 'Not found' });
   }
 
@@ -53,11 +53,14 @@ async function GetFile(req, res) {
 }
 
 async function GetAll(req, res) {
-  const parentId = req.query.parentId || 0;
+  const parentId = req.query.parentId;
   const page = req.query.page * 20 - 1 || 0;
-  const ownerID = await misc.curUsrId(req.headers);
-  const files = await dbClient.GetFiles({ ownerID, parentId }, false, page);
-  console.log(files.length, files);
+  const userId = await misc.curUsrId(req.headers);
+  const query = {userId, parentId};
+  if(!parentId) delete query.parentId;
+  
+  const files = await dbClient.GetFiles(query, false, page); 
+  
   if (!files) return res.status(401).json({ error: 'Unauthorized' });
 
   res.json(files);
