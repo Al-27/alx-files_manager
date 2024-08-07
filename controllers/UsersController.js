@@ -1,5 +1,5 @@
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+import misc from '../utils/misc';
 
 async function NewUser(req, res) {
   const { email, password } = req.body;
@@ -15,12 +15,12 @@ async function NewUser(req, res) {
     return res.status(400).json({ error: 'Already exist' });
   }
 
-  await dbClient.CreateUser(email, password);
+  const usr = await dbClient.CreateUser(email, password);
+  res.json({ id: usr, email });
 }
 
 async function CurrentUser(req, res) {
-  const token = req.headers['x-token'];
-  const id = await redisClient.get(`auth_${token}`);
+  const id = await misc.curUsrId(req.headers);
   const user = await dbClient.GetByid(id);
 
   res.send(JSON.stringify({ id: user._id, email: user.email }));

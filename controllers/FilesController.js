@@ -1,16 +1,14 @@
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 import misc from '../utils/misc';
 
 async function UploadFile(req, res) {
   const metadata = req.body;
-  const token = req.headers['x-token'];
-  const id = await redisClient.get(`auth_${token}`);
+  const id = await misc.curUsrId(req.headers);
 
   const err = (msg) => res.status(400).json({ error: msg });
 
   /// @parent: ID of parent root, 0(default) root
-  metadata.parentId = metadata.parentId ? metadata.parentId : 0;
+  metadata.parentId = metadata.parentId || 0;
   metadata.isPublic = metadata.isPublic ? metadata.isPublic : false;
   let parFolder = null;
   if (!metadata.name) {
@@ -22,7 +20,8 @@ async function UploadFile(req, res) {
   if (!metadata.data && metadata.type !== 'folder') {
     return err('Missing data');
   }
-  if (metadata.parentId && metadata.parentId !== 0) {
+  // eslint-disable-next-line eqeqeq
+  if (metadata.parentId != 0) {
     parFolder = await dbClient.GetByid(metadata.parentId, 'files');
     if (parFolder == null) { return err('Parent not found'); }
     if (parFolder.type !== 'folder') { return err('Parent is not a folder'); }
@@ -39,7 +38,34 @@ async function UploadFile(req, res) {
   return res.status(201).json({ id: fileid, ownerID: id, ...metadata });
 }
 
+async function GetFile(req, res) {
+  const { id } = req.params;
+  const file = await dbClient.GetByid(id);
+  const usrId = await misc.curUsrId(req.headers);
+  if (!file) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (file.ownerID !== usrId) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  res.json(file);
+}
+
+async function GetAll(req, res) {
+  const parentId = req.query.parentId || 0;
+  const page = req.query.page * 20 - 1 || 0;
+  const ownerID = await misc.curUsrId(req.headers);
+  const files = await dbClient.GetFiles({ ownerID, parentId }, false, page);
+  console.log(files.length, files);
+  if (!files) return res.status(401).json({ error: 'Unauthorized' });
+
+  res.json(files);
+}
+
 const filesCtrls = {};
 filesCtrls.upload = UploadFile;
+filesCtrls.getFile = GetFile;
+filesCtrls.getAll = GetAll;
 
 export default filesCtrls;
