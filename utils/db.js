@@ -53,9 +53,13 @@ class DBClient {
     return file.insertedIds[0];
   }
 
-  async GetFiles(query, single = true, page = 0) {
-    const docs = await this.db.collection('files').find(query).skip(page).limit(20)
-      .toArray();
+  async GetFiles(query, single = true, page = 0) { 
+    const docs = await this.db.collection('files').aggregate([
+      { $match:  query },
+      { $project: { localPath: 0}},
+      { $skip: page }, 
+      { $limit: 20 } 
+    ]   ) .toArray() ;
     // if (docs) docs = docs.toArray();
     return single && docs ? docs[0] : docs;
   }
