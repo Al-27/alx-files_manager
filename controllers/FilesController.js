@@ -83,8 +83,9 @@ async function GetAll(req, res) {
 async function SetPublish(req, res, publish) {
   const { id } = req.params;
   const file = await dbClient.GetFiles({ _id: id });
+  const userId = await misc.curUsrId(req.headers);
   console.log(id, publish);
-  if (file) {
+  if (file && file.userId == userId) {
     await dbClient.UpdateDocument([{ _id: id }, { $set: { isPublic: publish } }], 'files');
     file.isPublic = publish;
     return res.status(200).json(file);
