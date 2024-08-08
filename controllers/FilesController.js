@@ -1,4 +1,5 @@
 /*eslint-disable */ 
+import ChildPool from '../node_modules/bull/lib/process/child-pool';
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
 
@@ -25,10 +26,10 @@ async function UploadFile(req, res) {
   if (metadata.parentId != 0) {
     parFolder = await dbClient.GetByid(metadata.parentId, 'files');
     if (parFolder == null) { return err('Parent not found'); }
-    if (parFolder.type !== 'folder') { return err('Parent is not a folder'); }
+    if (parFolder.type != 'folder') { return err('Parent is not a folder'); }
   }
 
-  if (metadata.type === 'folder') {
+  if (metadata.type == 'folder') {
     const fileid = await dbClient.CreateFile({ userId: id, ...metadata });
     return res.status(201).json({ id: fileid, userId: id, ...metadata });
   }
@@ -40,22 +41,28 @@ async function UploadFile(req, res) {
 
 async function GetFile(req, res, next) {
   const { id } = req.params;
-  const file = await dbClient.GetByid(id);
-  const usrId = await misc.curUsrId(req.headers);
-  if (!file) {
+  const file = await dbClient.GetByid(id,"files");
+  const usrId = await misc.curUsrId(req.headers); 
+  if (!file) { 
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
+  if (file.userId != usrId) {
     return res.status(404).json({ error: 'Not found' });
   }
-  if (req.url.includes('/data')) return next();
+  
   res.json(file);
 }
 
-async function GetData(req, res, next) {
+async function GetData(req, res) {
+  console.log(req.params);
   const { id } = req.params;
-  const file = await dbClient.GetByid(id);
+  const file = await dbClient.GetByid(id,"files");
   const usrId = await misc.curUsrId(req.headers);
+  
+  if (!file || !(file.userId == usrId)  || !file.isPublic) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  
   if (file.type == 'folder') {
     return res.status(400).json({ error: "A folder doesn't have content" });
   }

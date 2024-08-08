@@ -4,7 +4,7 @@ import redisClient from '../utils/redis';
 
 async function ValidToken(req, res, next) {
   const xToken = req.headers['x-token'];
-  if (req.url.match(/(\/disconnect|\/users\/me|\/files)/g)) {
+  if (req.url.match(/(\/disconnect|\/users\/me|\/files)/g) && !req.url.match(/\/files\/.*\/data/g)) {
     if (xToken == null || (await redisClient.get(`auth_${xToken}`)) == null) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

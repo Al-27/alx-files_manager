@@ -87,6 +87,7 @@ class DBClient {
 
   async GetByid(id, coll = 'users') {
     const doc = await this.db.collection(coll).find({ _id: new ObjectId(id) }).next();
+    console.log(doc,"GETBYID");
     return doc;
   }
 }
