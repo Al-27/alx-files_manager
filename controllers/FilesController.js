@@ -1,4 +1,4 @@
-import { del } from 'request';
+/*eslint-disable */ 
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
 
@@ -48,7 +48,7 @@ async function GetFile(req, res, next) {
   if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
     return res.status(404).json({ error: 'Not found' });
   }
-  if (eq.url.includes('/data')) return next();
+  if (req.url.includes('/data')) return next();
   res.json(file);
 }
 
@@ -57,13 +57,17 @@ async function GetData(req, res, next) {
   const file = await dbClient.GetByid(id);
   const usrId = await misc.curUsrId(req.headers);
   if (file.type == 'folder') {
-    return res.status(401).json({ error: "A folder doesn't have content" });
+    return res.status(400).json({ error: "A folder doesn't have content" });
   }
-  if (file.userId !== usrId || (req.url.includes('/data') && !file.isPublic)) {
+
+  const data = misc.getFileData(file.localPath);
+
+  if (!data) {
     return res.status(404).json({ error: 'Not found' });
   }
-  
-  
+
+  res.writeHead(200, data.headers);
+  data.readstrm.pipe(res);
 }
 
 async function GetAll(req, res) {

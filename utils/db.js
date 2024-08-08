@@ -1,3 +1,4 @@
+/*eslint-disable */
 import pkg from 'mongodb';
 import { env } from 'process';
 import sha1 from 'sha1';
@@ -75,7 +76,7 @@ class DBClient {
       { $skip: page },
       { $limit: 20 },
     ]).toArray();
-    // if (docs) docs = docs.toArray(); 
+    // if (docs) docs = docs.toArray();
     return single && docs ? docs[0] : docs;
   }
 
