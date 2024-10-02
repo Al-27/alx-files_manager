@@ -1,5 +1,4 @@
 /*eslint-disable */ 
-import ChildPool from '../node_modules/bull/lib/process/child-pool';
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
 

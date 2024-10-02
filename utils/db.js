@@ -22,7 +22,7 @@ class DBClient {
     return !!this.mongoC && !!this.mongoC.topology && this.mongoC.topology.isConnected();
   }
 
-  async nbnUsers() {
+  async nbUsers() {
     const num = this.db.collection('users').countDocuments();
     return num;
   }
