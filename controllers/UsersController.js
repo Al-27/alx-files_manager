@@ -16,14 +16,14 @@ async function NewUser(req, res) {
   }
 
   const usr = await dbClient.CreateUser(email, password);
-  res.json({ id: usr, email });
+  res.status(201).json({ id: usr, email });
 }
 
 async function CurrentUser(req, res) {
   const id = await misc.curUsrId(req.headers);
   const user = await dbClient.GetByid(id);
 
-  res.send(JSON.stringify({ id: user._id, email: user.email }));
+  res.status(201).json({ id: user._id, email: user.email });
 }
 
 const userCtrls = {};
