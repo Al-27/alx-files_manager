@@ -8,7 +8,7 @@ async function NewUser(req, res) {
   }
 
   if (!password) {
-    return res.status(400).json({ error: 'Missing email' });
+    return res.status(400).json({ error: 'Missing password' });
   }
 
   if (await dbClient.isUserValid(email)) {
