@@ -10,7 +10,7 @@ import redisClient from './redis';
 function CreateFile(file, parent = '') {
   let localPath = env.FOLDER_PATH ? env.FOLDER_PATH : '/tmp/files_manager';
   localPath = path.join(localPath, parent);
-  const folderPath = path.join(require.main.path);
+  const folderPath = path.join(require.main.path, localPath);
   mkdirSync(folderPath, { recursive: true });
   const uuid = v4();
   const data = Buffer.from(file, 'base64');
