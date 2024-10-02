@@ -23,7 +23,7 @@ async function CurrentUser(req, res) {
   const id = await misc.curUsrId(req.headers);
   const user = await dbClient.GetByid(id);
 
-  res.status(201).json({ id: user._id, email: user.email });
+  res.json({ id: user._id, email: user.email });
 }
 
 const userCtrls = {};
