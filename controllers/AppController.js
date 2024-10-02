@@ -7,7 +7,7 @@ function status(req, res) {
 }
 
 async function stats(req, res) {
-  const response = { users: await dbClient.nbnUsers(), files: await dbClient.nbFiles() };
+  const response = { users: await dbClient.nbUsers(), files: await dbClient.nbFiles() };
   res.status(200).json(response);
 }
 const appController = {};
