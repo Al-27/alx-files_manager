@@ -5,7 +5,7 @@ import misc from '../utils/misc';
 async function UploadFile(req, res) {
   const metadata = req.body;
   const id = await misc.curUsrId(req.headers);
-
+  
   const err = (msg) => res.status(400).json({ error: msg });
 
   /// @parent: ID of parent root, 0(default) root
@@ -29,8 +29,8 @@ async function UploadFile(req, res) {
   }
 
   if (metadata.type == 'folder') {
-    const fileid = await dbClient.CreateFile({ userId: id, ...metadata });
-    return res.status(201).json({ id: fileid, userId: id, ...metadata });
+    const folderid = await dbClient.CreateFile({ userId: id, ...metadata });
+    return res.status(201).json({ id: folderid, userId: id, ...metadata });
   }
   const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : '');
   delete metadata.data;
@@ -53,7 +53,6 @@ async function GetFile(req, res, next) {
 }
 
 async function GetData(req, res) {
-  console.log(req.params);
   const { id } = req.params;
   const file = await dbClient.GetByid(id,"files");
   const usrId = await misc.curUsrId(req.headers);
@@ -86,7 +85,7 @@ async function GetAll(req, res) {
   const files = await dbClient.GetFiles(query, false, page);
 
   if (!files) return res.status(401).json({ error: 'Unauthorized' });
-
+  console.log(files);
   res.json(files);
 }
 
@@ -94,7 +93,7 @@ async function SetPublish(req, res, publish) {
   const { id } = req.params;
   const file = await dbClient.GetFiles({ _id: id });
   const userId = await misc.curUsrId(req.headers);
-  console.log(id, publish);
+  
   if (file && file.userId == userId) {
     await dbClient.UpdateDocument([{ _id: id }, { $set: { isPublic: publish } }], 'files');
     file.isPublic = publish;

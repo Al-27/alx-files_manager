@@ -65,11 +65,16 @@ class DBClient {
     if (query._id) {
       query._id = new ObjectId(query._id);
     }
+    if (!single) {
+      delete query.userId;
+    }
+    console.log(query);
+    
     const docs = await this.db.collection('files').aggregate([
       { $match: query },
       {
         $addFields: {
-          id: '$_id', // Create a new field yearsOld with the value of the age field
+          id: '$_id', // Create a new field _id
         },
       },
       { $project: { localPath: 0, _id: 0 } },
@@ -77,6 +82,7 @@ class DBClient {
       { $limit: 20 },
     ]).toArray();
     // if (docs) docs = docs.toArray();
+    
     return single && docs ? docs[0] : docs;
   }
 
@@ -87,7 +93,6 @@ class DBClient {
 
   async GetByid(id, coll = 'users') {
     const doc = await this.db.collection(coll).find({ _id: new ObjectId(id) }).next();
-    console.log(doc,"GETBYID");
     return doc;
   }
 }
