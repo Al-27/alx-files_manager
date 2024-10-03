@@ -41,12 +41,12 @@ async function UploadFile(req, res) {
 async function GetFile(req, res, next) {
   const { id } = req.params;
   const file = await dbClient.GetByid(id,"files");
-  const usrId = await misc.curUsrId(req.headers); 
+  const usrId = await misc.curUsrId(req.headers);  
   if (!file) { 
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(404).json({ error: 'Not found' });
   }
   if (file.userId != usrId) {
-    return res.status(404).json({ error: 'Not found' });
+    return res.status(401).json({ error: 'Unauthorized' });
   }
   
   res.json(file);
