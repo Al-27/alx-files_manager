@@ -23,7 +23,7 @@ function CreateFile(fl, parent = '') {
 }
 
 function GetFileData(localPath) {
-  const filePath = path.join(require.main.path, localPath);
+  const filePath = path.join(localPath);
 
   try {
     /*eslint-disable */

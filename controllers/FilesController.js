@@ -57,7 +57,7 @@ async function GetData(req, res) {
   const file = await dbClient.GetByid(id,"files");
   const usrId = await misc.curUsrId(req.headers);
   
-  if (!file || !(file.userId == usrId)  || !file.isPublic) {
+  if (!file || !(file.userId == usrId) && !file.isPublic) {
     return res.status(404).json({ error: 'Not found' });
   }
   
