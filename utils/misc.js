@@ -5,13 +5,13 @@ import {
 import path from 'path';
 import { env } from 'process';
 import { v4 } from 'uuid';
-import { contentType } from 'mime-types';
+import { lookup } from 'mime-types';
 import redisClient from './redis';
 
 //@fl: could be a folder or a file
 function CreateFile(fl, parent = '') {
   let localPath = env.FOLDER_PATH ? env.FOLDER_PATH : '/tmp/files_manager';
-  console.log(fl, parent);
+  // console.log(fl, parent);
   localPath = path.join(localPath, parent);
   const folderPath = path.join(localPath);
   mkdirSync(folderPath, { recursive: true });
@@ -35,7 +35,7 @@ function GetFileData(localPath) {
 
   const data = {};
   data.headers = {
-    'Content-Type': contentType(localPath),
+    'Content-Type': lookup(localPath) || 'application/octet-stream',
     'Content-Length': props.size,
   };
 
@@ -54,5 +54,6 @@ const misc = {};
 misc.createFile = CreateFile;
 misc.getFileData = GetFileData;
 misc.curUsrId = GetUserId;
+misc.isImg = (file) => { return (lookup(file) || 'application/octet-stream').includes('image') }
 
 export default misc;
