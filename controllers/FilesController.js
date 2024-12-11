@@ -1,11 +1,14 @@
-/*eslint-disable */ 
+/*eslint-disable */
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
+import Queue from 'bull';
+
+const queue = new Queue('fileQueue');
+
 
 async function UploadFile(req, res) {
   const metadata = req.body;
   const id = await misc.curUsrId(req.headers);
-  
   const err = (msg) => res.status(400).json({ error: msg });
 
   /// @parent: ID of parent root, 0(default) root
@@ -35,37 +38,57 @@ async function UploadFile(req, res) {
   const localPath = misc.createFile(metadata.data, parFolder ? parFolder.name : '');
   delete metadata.data;
   const fileid = await dbClient.CreateFile({ userId: id, ...metadata, localPath });
+
+  if (metadata.type == 'image')
+    await queue.add({ fileId: fileid, userId, type: metadata.type });
+
   return res.status(201).json({ id: fileid, userId: id, ...metadata });
 }
 
 async function GetFile(req, res, next) {
   const { id } = req.params;
-  const file = await dbClient.GetByid(id,"files");
-  const usrId = await misc.curUsrId(req.headers);  
-  if (!file) { 
+  const file = await dbClient.GetByid(id, "files");
+  const usrId = await misc.curUsrId(req.headers);
+  if (!file) {
     return res.status(404).json({ error: 'Not found' });
   }
   if (file.userId != usrId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  
+
   res.json(file);
 }
 
 async function GetData(req, res) {
-  const { id } = req.params;
-  const file = await dbClient.GetByid(id,"files");
+  let { id, size } = req.params;
+  const file = await dbClient.GetByid(id, "files");
   const usrId = await misc.curUsrId(req.headers);
-  
+  //Delete this section
+  const queue = new Queue('img-queue');
+  await queue.add({ fileId: id, userId: usrId });
+  //END
   if (!file || !(file.userId == usrId) && !file.isPublic) {
     return res.status(404).json({ error: 'Not found' });
   }
-  
+
   if (file.type == 'folder') {
     return res.status(400).json({ error: "A folder doesn't have content" });
   }
 
-  const data = misc.getFileData(file.localPath);
+  if (file.type == 'image') {
+    let sz = 0;
+    if (size) {
+      sz = parseInt(size)
+      size = '_'+ size;
+      //if wrong size is passed, ensure the original image is return instead
+      if (![500, 250, 100].includes(sz))
+        size = '';
+    }
+  }
+  else
+    size = '';
+    
+  const data = misc.getFileData(file.localPath+size);
 
   if (!data) {
     return res.status(404).json({ error: 'Not found' });
@@ -93,7 +116,7 @@ async function SetPublish(req, res, publish) {
   const { id } = req.params;
   const file = await dbClient.GetFiles({ _id: id });
   const userId = await misc.curUsrId(req.headers);
-  
+
   if (file && file.userId == userId) {
     await dbClient.UpdateDocument([{ _id: id }, { $set: { isPublic: publish } }], 'files');
     file.isPublic = publish;
