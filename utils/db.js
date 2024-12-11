@@ -68,7 +68,7 @@ class DBClient {
     if (!single) {
       delete query.userId;
     }
-    console.log(query);
+    //console.log(query);
     
     const docs = await this.db.collection('files').aggregate([
       { $match: query },
