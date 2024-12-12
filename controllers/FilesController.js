@@ -49,11 +49,11 @@ async function GetFile(req, res, next) {
   const { id } = req.params;
   const file = await dbClient.GetByid(id, "files");
   const usrId = await misc.curUsrId(req.headers);
-  if (!file) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-  if (file.userId != usrId) {
+  if (!usrId) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+  if (!file || file.userId != usrId) {
+    return res.status(404).json({ error: 'Not found' });
   }
 
   res.json(file);
@@ -100,15 +100,15 @@ async function GetData(req, res) {
 
 async function GetAll(req, res) {
   const { parentId } = req.query;
-  const page = req.query.page * 20 - 1 || 0;
+  const page = req.query.page * 20 || 0;
   const userId = await misc.curUsrId(req.headers);
   const query = { userId, parentId };
   if (!parentId) delete query.parentId;
-
+  
   const files = await dbClient.GetFiles(query, false, page);
 
   if (!files) return res.status(401).json({ error: 'Unauthorized' });
-  console.log(files);
+  // console.log(files);
   res.json(files);
 }
 

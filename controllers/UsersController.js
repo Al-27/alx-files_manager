@@ -1,6 +1,6 @@
+import bull from 'bull';
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
-import bull from 'bull'
 
 const queue = new bull('userQueue');
 
@@ -19,7 +19,7 @@ async function NewUser(req, res) {
   }
 
   const usr = await dbClient.CreateUser(email, password);
-  await queue.add({userId: usr.userId});
+  await queue.add({ userId: usr.userId });
 
   res.status(201).json({ id: usr, email });
 }
