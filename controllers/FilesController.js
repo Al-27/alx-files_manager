@@ -1,7 +1,7 @@
 /*eslint-disable */
+import Queue from 'bull';
 import dbClient from '../utils/db';
 import misc from '../utils/misc';
-import Queue from 'bull';
 
 const queue = new Queue('fileQueue');
 
